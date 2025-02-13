@@ -1,0 +1,44 @@
+#VRML_SIM R2023b utf8
+
+PROTO Stamp [
+]
+{
+  Solid {
+    translation 0 0 0.05  # Vị trí ban đầu trên giấy
+    contactMaterial "rubber"  # Giúp tăng ma sát
+    children [
+      # Thân con dấu (mặt đóng dấu)
+      Shape {
+        appearance PBRAppearance {
+          baseColor 0.8 0.8 0.8  # Màu xám
+        }
+        geometry Box {
+          size 0.05 0.05 0.01  # Kích thước con dấu
+        }
+      }
+      # Tay cầm con dấu
+      Shape {
+        appearance PBRAppearance {
+          baseColor 0.6 0.3 0.05  # Màu nâu gỗ
+        }
+        geometry Cylinder {
+          radius 0.015
+          height 0.1
+        }
+      }
+    ]
+    
+    contactProperties [
+      ContactProperties {
+        material1 "rubber"
+        material2 "default"
+        coulombFriction 2.5  # 🔥 Tăng ma sát giữa stamp và gripper
+        bounce 0.0  # Giảm độ nảy
+      }
+    ]
+    
+    boundingObject Box { size 0.05 0.05 0.01 }
+    physics Physics { density -1 mass 0.1 }  # Thêm trọng lượng
+    name "stamp"
+  }
+}

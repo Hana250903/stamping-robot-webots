@@ -1,0 +1,24 @@
+#VRML_SIM R2023b utf8
+# Describe the functionality of your PROTO here.
+# template language: javascript
+# tags: nonDeterministic
+#VRML_SIM R2023b utf8  # <== Add this header line
+
+PROTO A4Paper [
+]
+{
+  Solid {
+    translation 0 0 0.001  # Adjust position slightly above ground
+    children [
+      Shape {
+        appearance PBRAppearance {
+          baseColor 1 1 1  # White color (A4 Paper)
+          transparency 0.1  # Slight transparency (optional)
+        }
+        geometry Box {
+          size 0.21 0.297 0.001  # A4 paper size in meters (21cm x 29.7cm)
+        }
+      }
+    ]
+  }
+}
