@@ -1,0 +1,81 @@
+#VRML_SIM R2023b utf8
+
+PROTO StampTray [
+]
+{
+  Solid {
+    translation 0 0 0.02  # Đặt vị trí khay trên bàn
+    children [
+      # Thân khay
+      Shape {
+        appearance PBRAppearance {
+          baseColor 0.6 0.3 0.1  # Màu nâu gỗ
+        }
+        geometry Box {
+          size 0.1 0.1 0.01  # Kích thước khay
+        }
+      }
+      # Thành khay (4 cạnh)
+      Transform {
+        translation 0 0.05 0.01  # Thành trên
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.5 0.25 0.1  # Màu nâu đậm hơn
+            }
+            geometry Box {
+              size 0.1 0.005 0.02
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0 -0.05 0.01  # Thành dưới
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.5 0.25 0.1
+            }
+            geometry Box {
+              size 0.1 0.005 0.02
+            }
+          }
+        ]
+      }
+      Transform {
+        translation 0.05 0 0.01  # Thành phải
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.5 0.25 0.1
+            }
+            geometry Box {
+              size 0.005 0.1 0.02
+            }
+          }
+        ]
+      }
+      Transform {
+        translation -0.05 0 0.01  # Thành trái
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0.5 0.25 0.1
+            }
+            geometry Box {
+              size 0.005 0.1 0.02
+            }
+          }
+        ]
+      }
+    ]
+
+    boundingObject Box { size 0.1 0.1 0.01 }
+
+    physics Physics {
+      mass 0.3
+    }
+
+    name "stamp_tray"
+  }
+}

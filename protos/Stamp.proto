@@ -4,7 +4,7 @@ PROTO Stamp [
 ]
 {
   Solid {
-    translation 0 0 0.05  # Vị trí ban đầu trên giấy
+    translation 0.0243876 0.258023 0.0249608  # Vị trí ban đầu trên giấy
     contactMaterial "rubber"  # Giúp tăng ma sát
     children [
       # Thân con dấu (mặt đóng dấu)
@@ -13,17 +13,7 @@ PROTO Stamp [
           baseColor 0.8 0.8 0.8  # Màu xám
         }
         geometry Box {
-          size 0.05 0.05 0.01  # Kích thước con dấu
-        }
-      }
-      # Tay cầm con dấu
-      Shape {
-        appearance PBRAppearance {
-          baseColor 0.6 0.3 0.05  # Màu nâu gỗ
-        }
-        geometry Cylinder {
-          radius 0.015
-          height 0.1
+          size 0.05 0.05 0.05  # Kích thước con dấu
         }
       }
     ]
@@ -37,8 +27,8 @@ PROTO Stamp [
       }
     ]
     
-    boundingObject Box { size 0.05 0.05 0.01 }
-    physics Physics { density -1 mass 0.1 }  # Thêm trọng lượng
+    boundingObject Box { size 0.05 0.05 0.05}
+    physics Physics {mass 0.1 }  # Thêm trọng lượng
     name "stamp"
   }
 }

@@ -39,16 +39,17 @@ class IprHd6m90Controller:
 
         print("✅ Moving to stamp position...")
         self.move_joint("base", 3)  # Xoay về phía stamp
-        self.move_joint("upperarm", -1.2)  # Hạ tay xuống gần stamp
+        self.move_joint("upperarm", -1.1)  # Hạ tay xuống gần stamp
         self.move_joint("forearm", 0)  # Điều chỉnh forearm
         self.move_joint("wrist", -1)  # Căn chỉnh cổ tay
-        self.move_joint("gripper::right", 0.4)
+        self.move_joint("gripper::right", 0.7)
         self.move_joint("rotational_wrist", 0)  # Xoay cổ tay nhặt stamp
 
-        self.robot.step(1500)  # Chờ robot di chuyển
+        self.robot.step(2000)  # Chờ robot di chuyển
 
         # Đóng kẹp để cầm stamp
         print("✅ Grabbing the stamp...")
+        self.move_joint("upperarm", -1.5)
         self.move_joint("gripper::right", -0.04)  # Đóng gripper giữ stamp
 
         self.robot.step(1500)  # Chờ kẹp giữ chắc
@@ -64,7 +65,7 @@ class IprHd6m90Controller:
         """Di chuyển đến giấy và đóng dấu."""
         print("✅ Moving to paper position...")
         self.move_joint("base", 6.0)  # Xoay về giấy
-        self.move_joint("upperarm", -1.5)  # Hạ tay xuống gần giấy
+        self.move_joint("upperarm", -1)  # Hạ tay xuống gần giấy
         self.move_joint("forearm", 0.3)  # Điều chỉnh forearm
         self.move_joint("wrist", -0.8)  # Căn chỉnh cổ tay
 
@@ -72,14 +73,24 @@ class IprHd6m90Controller:
 
         # Nhấn xuống giấy
         print("✅ Pressing stamp...")
+        self.move_joint("upperarm", -1.5)
         self.move_joint("wrist", -1.0)  # Ép xuống
         self.robot.step(1000)
 
+    def releasing_stamp(self):
         # Nhả stamp
         print("✅ Releasing stamp...")
-        self.move_joint("gripper::right", 0.1)  # Mở kẹp để thả stamp
+        self.move_joint("base", 3)  # Xoay về phía stamp
+        self.move_joint("upperarm", -1.0)  # Hạ tay xuống gần stamp
+        self.move_joint("forearm", 0)  # Điều chỉnh forearm
+        self.move_joint("wrist", -1)  # Căn chỉnh cổ tay
+        self.move_joint("gripper::right", -0.04)
+        self.move_joint("rotational_wrist", 0) 
 
-        self.robot.step(1000)  # Chờ mở kẹp
+        self.robot.step(1500)  # Chờ mở kẹp
+        
+        self.move_joint("upperarm", -1.5)
+        self.move_joint("gripper::right", 0.7)
 
         # Nâng tay lên
         print("✅ Lifting arm...")
@@ -103,6 +114,7 @@ class IprHd6m90Controller:
         while self.robot.step(TIME_STEP) != -1:
             if self.pick_up_stamp():  # Bước 1: Nhặt stamp
                 self.press_stamp()  # Bước 2: Đóng dấu
+                self.releasing_stamp()
                 self.reset_position()  # Bước 3: Quay về vị trí ban đầu
             break  # Dừng sau khi hoàn thành 1 lần đóng dấu
 
