@@ -69,14 +69,19 @@ class IprHd6m90Controller:
         self.move_joint("forearm", 0.3)  # Điều chỉnh forearm
         self.move_joint("wrist", -0.8)  # Căn chỉnh cổ tay
 
-        self.robot.step(1000)  # Chờ robot di chuyển
+        self.robot.step(1500)  # Chờ robot di chuyển
 
         # Nhấn xuống giấy
         print("✅ Pressing stamp...")
-        self.move_joint("upperarm", -1.5)
-        self.move_joint("wrist", -1.0)  # Ép xuống
-        self.robot.step(1000)
+        self.move_joint("upperarm", -1.6)
+        self.move_joint("wrist", -1.4)  # Ép xuống
+        self.robot.step(1500)
 
+        # Nâng stamp lên 
+        print("✅ Lifting stamp...")
+        self.move_joint("upperarm", 0.0)  # Nâng tay lên
+        self.robot.step(1000)
+        
     def releasing_stamp(self):
         # Nhả stamp
         print("✅ Releasing stamp...")
