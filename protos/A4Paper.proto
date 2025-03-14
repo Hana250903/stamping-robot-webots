@@ -1,24 +1,48 @@
 #VRML_SIM R2023b utf8
-# Describe the functionality of your PROTO here.
-# template language: javascript
-# tags: nonDeterministic
-#VRML_SIM R2023b utf8  # <== Add this header line
 
 PROTO A4Paper [
 ]
 {
-  Solid {
-    translation 0 0 0.001  # Adjust position slightly above ground
+  DEF A4PAPER Solid {
+    translation 0 -0.38 0.021  # Đặt giấy lên bề mặt
     children [
+      # Giấy A4
       Shape {
         appearance PBRAppearance {
-          baseColor 1 1 1  # White color (A4 Paper)
-          transparency 0.1  # Slight transparency (optional)
+          baseColor 1 1 1  # Màu trắng (giấy A4)
+          roughness 1
+          metalness 0
         }
         geometry Box {
-          size 0.21 0.297 0.001  # A4 paper size in meters (21cm x 29.7cm)
+          size 0.21 0.297 0.001  # Kích thước A4
         }
       }
+
+      # Dấu in (Ẩn ban đầu)
+      Transform {
+        translation 0 0 0.002  # Nhô lên một chút
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 1 0 0  # Màu đỏ (mô phỏng dấu in)
+              transparency 1  # Ẩn ban đầu
+            }
+            geometry Box {
+              size 0.02 0.001 0.02  # ✅ Kích thước dấu nhỏ hơn
+            }
+          }
+        ]
+        name "stampMark"
+      }
     ]
+    
+    # ✅ Thêm boundingObject để Webots nhận diện va chạm
+    boundingObject Box { size 0.21 0.297 0.001 }
+    
+    # ✅ Thêm physics để giấy có khối lượng hợp lý
+    physics Physics {
+      density -1
+      mass 0.05
+    }
   }
 }

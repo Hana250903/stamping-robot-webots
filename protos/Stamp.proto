@@ -3,18 +3,34 @@
 PROTO Stamp [
 ]
 {
-  Solid {
-    translation 0.0243876 0.258023 0.0249608  # Vị trí ban đầu trên giấy
+  DEF STAMP Solid {
+    translation 0.0243876 0.258023 0.0249608  # Vị trí ban đầu
     contactMaterial "rubber"  # Giúp tăng ma sát
     children [
-      # Thân con dấu (mặt đóng dấu)
+      # Thân con dấu
       Shape {
         appearance PBRAppearance {
-          baseColor 0.8 0.8 0.8  # Màu xám
+          baseColor 0.8 0.1 0.1  # Màu đỏ (thân con dấu)
         }
         geometry Box {
           size 0.05 0.05 0.05  # Kích thước con dấu
         }
+      }
+
+      # Mặt in dấu
+      Transform {
+        translation 0 -0.026 0  # Đặt hình vuông ở mặt dưới
+        rotation 1 0 0 3.1416  # Lật ngược xuống giấy
+        children [
+          Shape {
+            appearance PBRAppearance {
+              baseColor 0 0 0  # Màu đen mô phỏng mực
+            }
+            geometry Box {
+              size 0.04 0.001 0.04  # Kích thước in dấu (mỏng)
+            }
+          }
+        ]
       }
     ]
     
@@ -22,13 +38,13 @@ PROTO Stamp [
       ContactProperties {
         material1 "rubber"
         material2 "default"
-        coulombFriction 2.5  # 🔥 Tăng ma sát giữa stamp và gripper
+        coulombFriction 2.5  # 🔥 Tăng ma sát giữa stamp và giấy
         bounce 0.0  # Giảm độ nảy
       }
     ]
     
     boundingObject Box { size 0.05 0.05 0.05}
-    physics Physics {mass 0.1 }  # Thêm trọng lượng
+    physics Physics { mass 0.1 }  # Thêm trọng lượng
     name "stamp"
   }
 }

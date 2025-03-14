@@ -1,4 +1,4 @@
-from controller import Robot, Motor
+from controller import Robot, Motor, Supervisor
 import asyncio
 import websockets
 import json
@@ -9,13 +9,22 @@ JOINT_NAMES = ["base", "upperarm", "forearm", "wrist", "rotational_wrist", "grip
 
 class IprHd6m90Controller:
     def __init__(self):
-        self.robot = Robot()
+        self.robot = Supervisor()  # ✅ Đúng
         self.joints = {}
         self.running = False  # 🚀 Biến này kiểm soát trạng thái robot
         self.waiting_logged = False  # Tránh spam "Waiting for command"
 
         # Tốc độ tối đa
         self.MAX_SPEED = 5.0  # rad/s
+
+        self.stamp = self.robot.getFromDef("STAMP")
+        self.paper = self.robot.getFromDef("A4PAPER")
+        
+        if self.stamp is None:
+            print("❌ STAMP not found!")
+        if self.paper is None:
+            print("❌ A4PAPER not found!")
+
 
         # Khởi tạo khớp
         for joint in JOINT_NAMES:
@@ -28,6 +37,29 @@ class IprHd6m90Controller:
                 self.joints[joint].setPosition(0)  # 🚀 Đặt vị trí khớp về 0
 
         print("✅ Robot initialized, all joints set to 0 position.")
+    
+    def check_collision(self):
+        """Kiểm tra xem con dấu có chạm vào giấy không."""
+        if self.stamp and self.paper:
+            stamp_pos = self.stamp.getPosition()
+            paper_pos = self.paper.getPosition()
+            
+            # Kiểm tra khoảng cách X, Y, Z
+            if abs(stamp_pos[0] - paper_pos[0]) < 0.02 and abs(stamp_pos[1] - paper_pos[1]) < 0.02 and abs(stamp_pos[2] - paper_pos[2]) < 0.002:
+                print("🖋️ Stamp has touched the paper! Marking the paper...")
+
+                # ✅ Làm hiện dấu in
+                self.stamp_appearance.getField("transparency").setSFFloat(0)
+                return True
+        return False
+    
+    def update_paper_texture(self):
+    if self.paper:
+        paper_texture = self.paper.getField("appearance").getSFNode().getField("textureTransform")
+        if paper_texture:
+            print("🖋️ Updating paper texture to show stamp mark...")
+            paper_texture.setSFVec2f("scale", [1.2, 1.2])  # Giả lập dấu đã đóng
+
     
     def log_status(self, message, status):
         print(f"[{status}] {message}")
@@ -55,10 +87,10 @@ class IprHd6m90Controller:
         self.move_joint("wrist", -1)
         self.move_joint("gripper::right", 0.7)
         self.move_joint("rotational_wrist", 0)
-        self.robot.step(2000)
+        self.robot.step(1000)
 
         self.log_status("Grabbing the stamp...", "PROCESSING")
-        self.move_joint("upperarm", -1.5)
+        self.move_joint("upperarm", -1.4)
         self.move_joint("gripper::right", -0.04)
         self.robot.step(1500)
 
@@ -77,27 +109,35 @@ class IprHd6m90Controller:
         self.robot.step(1500)
 
         self.log_status("Pressing stamp...", "PROCESSING")
-        self.move_joint("upperarm", -1.6)
-        self.move_joint("wrist", -1.4)
-        self.robot.step(1500)
+        self.move_joint("upperarm", -1.45)
+        self.update_paper_texture()
+        self.move_joint("wrist", -1.1)
+        self.robot.step(2000)
 
         self.log_status("Lifting stamp...", "PROCESSING")
         self.move_joint("upperarm", 0.0)
         self.robot.step(1000)
         self.log_status("Press stamp completed", "SUCCESS")
+        
+         # Kiểm tra va chạm
+        if self.check_collision():
+            print("✅ Paper has been stamped!")
+        
+        self.move_joint("upperarm", 0.0)
+        self.robot.step(1000)
 
     def release_stamp(self):
         print("🛠 Releasing stamp...")
         self.log_status("Releasing stamp", "PROCESSING")
         self.move_joint("base", 3)
-        self.move_joint("upperarm", -1.0)
+        self.move_joint("upperarm", -1.1)
         self.move_joint("forearm", 0)
         self.move_joint("wrist", -1)
         self.move_joint("gripper::right", -0.04)
         self.move_joint("rotational_wrist", 0)
         self.robot.step(1500)
 
-        self.move_joint("upperarm", -1.5)
+        self.move_joint("upperarm", -1.4)
         self.move_joint("gripper::right", 0.7)
 
         self.log_status("Lifting arm...", "PROCESSING")

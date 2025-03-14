@@ -2,7 +2,7 @@ import asyncio
 import websockets
 import json
 
-async def websocket_client():
+async def  websocket_client():
     uri = "ws://localhost:8766"
 
     try:
