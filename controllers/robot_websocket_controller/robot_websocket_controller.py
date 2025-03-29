@@ -13,6 +13,7 @@ class IprHd6m90Controller:
         self.joints = {}
         self.running = False  # 🚀 Biến này kiểm soát trạng thái robot
         self.waiting_logged = False  # Tránh spam "Waiting for command"
+        self.stamp_appearance = None  # ✅ Khởi tạo mặc định là None
 
         # Tốc độ tối đa
         self.MAX_SPEED = 5.0  # rad/s
@@ -20,10 +21,6 @@ class IprHd6m90Controller:
         self.stamp = self.robot.getFromDef("STAMP")
         self.paper = self.robot.getFromDef("A4PAPER")
         
-        if self.stamp is None:
-            print("❌ STAMP not found!")
-        if self.paper is None:
-            print("❌ A4PAPER not found!")
 
 
         # Khởi tạo khớp
@@ -45,22 +42,24 @@ class IprHd6m90Controller:
             paper_pos = self.paper.getPosition()
             
             # Kiểm tra khoảng cách X, Y, Z
-            if abs(stamp_pos[0] - paper_pos[0]) < 0.02 and abs(stamp_pos[1] - paper_pos[1]) < 0.02 and abs(stamp_pos[2] - paper_pos[2]) < 0.002:
-                print("🖋️ Stamp has touched the paper! Marking the paper...")
-
-                # ✅ Làm hiện dấu in
-                self.stamp_appearance.getField("transparency").setSFFloat(0)
-                return True
+            distance = sum(abs(stamp_pos[i] - paper_pos[i]) for i in range(3))
+    
+            if distance < 0.01:  # Giả sử 0.01 là ngưỡng để coi như đã va chạm
+                # ✅ Kiểm tra xem stamp_appearance đã được lấy chưa
+                if self.stamp_appearance is None:
+                    paper_children = self.paper.getField("children")
+                    if paper_children.getCount() > 1:  # Đảm bảo có đủ phần tử
+                        self.stamp_appearance = paper_children.getMFNode(1).getField("appearance")
+                
+                if self.stamp_appearance:
+                    self.stamp_appearance.getField("transparency").setSFFloat(0)
+                    print("✅ Stamp mark is now visible!")
+                    return True
+                else:
+                    print("⚠️ Error: stamp_appearance is not set correctly.")
         return False
-    
-    def update_paper_texture(self):
-    if self.paper:
-        paper_texture = self.paper.getField("appearance").getSFNode().getField("textureTransform")
-        if paper_texture:
-            print("🖋️ Updating paper texture to show stamp mark...")
-            paper_texture.setSFVec2f("scale", [1.2, 1.2])  # Giả lập dấu đã đóng
 
-    
+
     def log_status(self, message, status):
         print(f"[{status}] {message}")
 
@@ -90,7 +89,7 @@ class IprHd6m90Controller:
         self.robot.step(1000)
 
         self.log_status("Grabbing the stamp...", "PROCESSING")
-        self.move_joint("upperarm", -1.4)
+        self.move_joint("upperarm", -1.3)
         self.move_joint("gripper::right", -0.04)
         self.robot.step(1500)
 
@@ -110,7 +109,6 @@ class IprHd6m90Controller:
 
         self.log_status("Pressing stamp...", "PROCESSING")
         self.move_joint("upperarm", -1.45)
-        self.update_paper_texture()
         self.move_joint("wrist", -1.1)
         self.robot.step(2000)
 
@@ -137,7 +135,7 @@ class IprHd6m90Controller:
         self.move_joint("rotational_wrist", 0)
         self.robot.step(1500)
 
-        self.move_joint("upperarm", -1.4)
+        self.move_joint("upperarm", -1.5)
         self.move_joint("gripper::right", 0.7)
 
         self.log_status("Lifting arm...", "PROCESSING")

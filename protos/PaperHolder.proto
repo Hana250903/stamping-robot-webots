@@ -1,0 +1,19 @@
+#VRML_SIM R2023b utf8
+
+PROTO PaperHolder [
+]
+{
+  # Đế giữ giấy (Cố định)
+  Solid {
+    translation 0 0 0
+    name "PaperHolder"
+    children [
+      Shape {
+        appearance PBRAppearance { baseColor 1 1 1 }  # Màu xám đậm
+        geometry Box { size 0.3 0.02 0.3 }  # Kích thước đế
+      }
+    ]
+    boundingObject Box { size 0.3 0.02 0.3 }  # Chặn xuyên qua
+    physics Physics { static TRUE }  # Giữ cố định
+  }
+}
