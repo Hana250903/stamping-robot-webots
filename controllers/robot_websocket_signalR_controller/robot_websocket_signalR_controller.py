@@ -70,7 +70,7 @@ class IprHd6m90Controller:
         self.robot.step(1000)
         
         self.log_status("Grabbing the stamp...", "InProgress")
-        self.move_joint("upperarm", -1.5)
+        self.move_joint("upperarm", -1.4)
         self.move_joint("gripper::right", -0.04)
         self.robot.step(1500)
         
@@ -161,12 +161,10 @@ class IprHd6m90Controller:
         """Lắc nhẹ con dấu để đảm bảo mực bám đều"""
         print("🔄 Shaking stamp...")
         self.log_status("Shaking stamp", "InProgress")
-    
-        for _ in range(3):  # Lắc 3 lần
-            self.move_joint("wrist", -1.2)
-            self.robot.step(500)
-            self.move_joint("wrist", -0.8)
-            self.robot.step(500)
+        self.move_joint("wrist", -1.2)
+        self.robot.step(500)
+        self.move_joint("wrist", -0.8)
+        self.robot.step(500)
     
         self.log_status("Shake completed", "Completed")
         send_update(job_id, "Completed")
@@ -233,8 +231,8 @@ class IprHd6m90Controller:
             self.log_status("Inspection completed", "Completed")
             send_update(job_id, "Completed")  
 
-# API_URL = "https://stampingrobotapi.azurewebsites.net/robotHub"
-API_URL = "https://localhost:7196/robotHub"
+API_URL = "https://stampingrobotapi-d0fpc6ghfggaf5az.southeastasia-01.azurewebsites.net/robotHub"
+#API_URL = "https://localhost:7196/robotHub"
 def create_task(coroutine):
     """Tạo một task bất đồng bộ an toàn trong event loop hiện tại."""
     try:
@@ -245,7 +243,8 @@ def create_task(coroutine):
         asyncio.set_event_loop(loop)
         return loop.run_until_complete(coroutine)
 
-API_UPDATE_JOB = "https://localhost:7196/api/stamping-jobs/{}"
+#API_UPDATE_JOB = "https://localhost:7196/api/stamping-jobs/{}"
+API_UPDATE_JOB = "https://stampingrobotapi-d0fpc6ghfggaf5az.southeastasia-01.azurewebsites.net/api/stamping-jobs/{}"
 
 def send_update(job_id, status):
     """Gửi cập nhật trạng thái của một stampingJob lên API bằng phương thức PATCH"""
@@ -265,7 +264,8 @@ def send_update(job_id, status):
     except requests.exceptions.RequestException as req_err:
         print(f"❌ Request error for job {job_id}: {req_err}")
 
-API_UPDATE_SESSION = "https://localhost:7196/api/stamping-sessions/{}"
+#API_UPDATE_SESSION = "https://localhost:7196/api/stamping-sessions/{}"
+API_UPDATE_SESSION = "https://stampingrobotapi-d0fpc6ghfggaf5az.southeastasia-01.azurewebsites.net/api/stamping-sessions/{}"
 
 def send_update_session(session_id, status):
     """Gửi cập nhật trạng thái của một stampingJob lên API bằng phương thức PATCH"""
@@ -283,7 +283,8 @@ def send_update_session(session_id, status):
     except requests.exceptions.RequestException as req_err:
         print(f"❌ Request error for job {session_id}: {req_err}")
 
-API_UPDATE_TASK = "https://localhost:7196/api/task-assignments"
+#API_UPDATE_TASK = "https://localhost:7196/api/task-assignments"
+API_UPDATE_TASK = "https://stampingrobotapi-d0fpc6ghfggaf5az.southeastasia-01.azurewebsites.net/api/task-assignments"
 
 def send_update_task(job_id, status, image_captured="", details=""):
     """Gửi cập nhật trạng thái của một task lên API bằng phương thức POST"""
@@ -308,17 +309,17 @@ def send_update_task(job_id, status, image_captured="", details=""):
     except requests.exceptions.RequestException as req_err:
         print(f"❌ Request error for job {job_id}: {req_err}")
         
-API_UPDATE_ROBOT = "https://localhost:7196/api/robots/{}"
+#API_UPDATE_ROBOT = "https://localhost:7196/api/robots/{}"
+API_UPDATE_ROBOT = "https://stampingrobotapi-d0fpc6ghfggaf5az.southeastasia-01.azurewebsites.net/api/robots/{}"
 
 def send_update_robot(robot_id, status):
     """Gửi cập nhật trạng thái của một stampingJob lên API bằng phương thức PATCH"""
-    
-    job = API_UPDATE_ROBOT.format(robot_id)
+    robot = API_UPDATE_ROBOT.format(robot_id)
     payload = f"{status}"
     headers = {"Content-Type": "application/json"}
 
     try:
-        response = requests.patch(job, json=payload, headers=headers, verify=False, timeout=10)  # Tăng timeout
+        response = requests.patch(robot, json=payload, headers=headers, verify=False, timeout=10)  # Tăng timeout
         response.raise_for_status()  # Tự động xử lý lỗi HTTP
         
         print(f"✅ Updated Robot {robot_id} to {status}")
@@ -352,45 +353,48 @@ def on_message(message):
         if not stamping_jobs:
             print("❌ No stamping jobs found!")
             return
+            
+        quantity = message.get("quantity", 1)  # ✅ Mặc định là 1 nếu không có
         
         # Sắp xếp danh sách stampingJobs theo stepNumber tăng dần
         stamping_jobs_sorted = sorted(stamping_jobs, key=lambda job: job["stepNumber"])
 
-        for job in stamping_jobs_sorted:
-            job_id = job["id"]
-            action = job["action"]
-            step = job["stepNumber"]
-            task_id = job["id"]
-            print(f"🔄 Executing Step {step}: {action} (Job ID: {job_id})")
-            
-            if action == "reset":
-                controller.reset(job_id)
-            elif action == "pick-up-stamp":
-                controller.pick_up_stamp(job_id)
-            elif action == "press-stamp":
-                controller.press_stamp(job_id)
-            elif action == "release-stamp":
-                controller.release_stamp(job_id)
-            elif action == "align_stamp":
-                controller.align_stamp(job_id)
-            elif action == "rotate_stamp":
-                controller.rotate_stamp(job_id)
-            elif action == "shake_stamp":
-                controller.shake_stamp(job_id)
-            elif action == "clean_stamp":
-                controller.clean_stamp(job_id)
-            elif action == "inspect_stamp":
-                controller.inspect_stamp(job_id)                
-            else:
-                print(f"⚠️ Unknown action: {action}, skipping...")
+        for i in range(quantity):  # 🔄 Lặp theo số lượng cần dập
+            print(f"\n🔄 [Batch {i+1}/{quantity}] Executing Stamping Process...\n")
+            for job in stamping_jobs_sorted:
+                job_id = job["id"]
+                action = job["action"]
+                step = job["stepNumber"]
+                task_id = job["id"]
+                print(f"🔄 Executing Step {step}: {action} (Job ID: {job_id})")
+                
+                if action == "reset":
+                    controller.reset(job_id)
+                elif action == "pick-up-stamp":
+                    controller.pick_up_stamp(job_id)
+                elif action == "press-stamp":
+                    controller.press_stamp(job_id)
+                elif action == "release-stamp":
+                    controller.release_stamp(job_id)
+                elif action == "align-stamp":
+                    controller.align_stamp(job_id)
+                elif action == "rotate-stamp":
+                    controller.rotate_stamp(job_id)
+                elif action == "shake-stamp":
+                    controller.shake_stamp(job_id)
+                elif action == "clean-stamp":
+                    controller.clean_stamp(job_id)
+                elif action == "inspect-stamp":
+                    controller.inspect_stamp(job_id)                
+                else:
+                    print(f"⚠️ Unknown action: {action}, skipping...")
+    
+                send_update(job_id, "Completed")  
+                send_update_task(task_id, "Completed")
 
-            send_update(job_id, "Completed")  
-            send_update_task(task_id, "Completed")
-
-        send_update_session(session_id, "Finished")
+            send_update_session(session_id, "Finished")
+            print(f"✅ Updated status to Finished for Session ID {session_id}")
         send_update_robot(robot_id, "Idle")
-        print(f"✅ Updated status to Finished for Session ID {session_id}")
-        
     except Exception as e:
         print(f"❌ Error processing message: {e}")
 
@@ -411,7 +415,7 @@ async def process_commands():
                 command = {"command": command.strip()}
 
             action = command.get("command")
-            if action in ["pick_up_stamp", "press_stamp", "release_stamp", "run", "stop", "reset"]:
+            if action in ["pick_up_stamp", "press_stamp", "release_stamp", "run", "stop", "reset", "clean_stamp", "shake_stamp", "rotate_stamp", "inspect_stamp", "align_stamp"]:
                 controller.running = True
                 getattr(controller, action)()
                 controller.running = False
@@ -475,41 +479,3 @@ async def main():
 # 🔥 Chạy main() nếu script được chạy độc lập
 if __name__ == "__main__":
     asyncio.run(main())
-
-def on_message(message):
-    """Nhận lệnh từ API, giải JSON và thực hiện các bước dập dấu."""
-    print(f"📩 Received task data: {json.dumps(message, indent=2)}")
-
-    global command_queue  
-
-    try:
-        if isinstance(message, list):
-            message = message[0]  
-
-        stamping_jobs = message.get("stampingJobs", [])
-        if not stamping_jobs:
-            print("❌ No stamping jobs found!")
-            return
-        
-        for job in stamping_jobs:
-            job_id = job["id"]
-            action = job["action"]
-            step = job["stepNumber"]
-
-            print(f"🔄 Executing Step {step}: {action} (Job ID: {job_id})")
-            
-            if action == "reset":
-                controller.reset()
-            elif action == "pick-up-stamp":
-                controller.pick_up_stamp()
-            elif action == "press-stamp":
-                controller.press_stamp()
-            elif action == "release-stamp":
-                controller.release_stamp()
-            else:
-                print(f"⚠️ Unknown action: {action}, skipping...")
-
-            send_update(job_id, "Completed")  
-
-    except Exception as e:
-        print(f"❌ Error processing message: {e}")
